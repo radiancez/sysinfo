@@ -1343,6 +1343,30 @@ impl Process {
             }
         }
     }
+
+    #[allow(missing_docs)]
+    pub fn priority(&self) -> Option<i32> {
+        #[cfg(target_os = "linux")]
+        {
+            self.inner.priority()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            None
+        }
+    }
+
+    #[allow(missing_docs)]
+    pub fn nice(&self) -> Option<i32> {
+        #[cfg(target_os = "linux")]
+        {
+            self.inner.nice()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            None
+        }
+    }
 }
 
 macro_rules! pid_decl {

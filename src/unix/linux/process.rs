@@ -120,6 +120,8 @@ pub(crate) struct ProcessInner {
     read_bytes: u64,
     written_bytes: u64,
     thread_kind: Option<ThreadKind>,
+    pub(crate) priority: Option<i32>,
+    pub(crate) nice: Option<i32>,
     proc_path: PathBuf,
 }
 
@@ -157,6 +159,8 @@ impl ProcessInner {
             read_bytes: 0,
             written_bytes: 0,
             thread_kind: None,
+            priority: None,
+            nice: None,
             proc_path,
         }
     }
@@ -164,6 +168,14 @@ impl ProcessInner {
     pub(crate) fn kill_with(&self, signal: Signal) -> Option<bool> {
         let c_signal = crate::sys::convert_signal(signal)?;
         unsafe { Some(kill(self.pid.0, c_signal) == 0) }
+    }
+
+    pub(crate) fn priority(&self) -> Option<i32> {
+        self.priority
+    }
+
+    pub(crate) fn nice(&self) -> Option<i32> {
+        self.nice
     }
 
     pub(crate) fn name(&self) -> &str {
@@ -431,6 +443,9 @@ fn update_proc_info(
     if refresh_kind.disk_usage() {
         update_process_disk_activity(p, proc_path);
     }
+
+    p.priority = parts[ProcIndex::Priority as usize].parse::<i32>().ok();
+    p.nice = parts[ProcIndex::Nice as usize].parse::<i32>().ok();
 }
 
 fn update_parent_pid(p: &mut ProcessInner, parent_pid: Option<Pid>, str_parts: &[&str]) {
